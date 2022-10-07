@@ -1,9 +1,12 @@
-package Part1.DataGeneration;
+package Part2.DataGeneration;
 
 import io.swagger.client.model.LiftRide;
 
 // TODO: create a wrapper
-public class SkiersGenerator extends AbstractGenerator implements IRandomGenerator {
+public class SkiersGenerator extends AbstractGenerator implements
+    IRandomGenerator {
+
+  protected static final int DAY = 1;
 
   public SkiersGenerator() {
   }

@@ -1,85 +1,63 @@
 package Part1;
 
-import static java.lang.Math.round;
 import Part1.Model.SkiersWrapper;
 import Part1.Threads.Phase;
 import Part1.Threads.Producer;
 import io.swagger.client.ApiClient;
-import io.swagger.client.ApiException;
 import io.swagger.client.api.SkiersApi;
-import Part1.DataGeneration.SkiersGenerator;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class SkiersClient {
-  public static final AtomicInteger SUCCESSFUL = new AtomicInteger(0);
-  public static final AtomicInteger UNSUCCESSFUL = new AtomicInteger(0);
-  private static final Integer NUM_PRODUCER_THREADS = 1;
-  private static final Integer NUM_CONSUMER_THREADS = 200;
   private static final Integer NUM_POSTS = 200000;
-  public static List<Long> latency = Collections.synchronizedList(new ArrayList<>());
 
-  public static void main(String[] args) throws ApiException, InterruptedException {
+  public static void main(String[] args) throws InterruptedException {
     SkiersApi skierApi = new SkiersApi();
     ApiClient client = skierApi.getApiClient();
     BlockingQueue<SkiersWrapper> dataBuffer = new LinkedBlockingQueue<>();
-    List<Long> latency = Collections.synchronizedList(new ArrayList<>());
 
     client.setBasePath("http://localhost:8080"
-        + "/Lab2_war_exploded/");
+      + "/LiftServer_war/");
+//    client.setBasePath("http://ec2-34-216-137-133.us-west-2.compute.amazonaws.com:8080/LiftServer_war/");
 
+    new Thread(new Producer(NUM_POSTS, dataBuffer)).start();
 
-    new Thread(new Producer(NUM_PRODUCER_THREADS, NUM_POSTS, dataBuffer)).start();
+    int phase1Threads = 32;
+    int phase1Post = 1000;
+    int phase2Trigger = phase1Threads/4;
 
-    int numPostPhase = NUM_POSTS/NUM_CONSUMER_THREADS;
-    int numThreads = NUM_CONSUMER_THREADS/4;
-
-//    int numPostPhase = 1000;
-//    int numThreads = 32;
-
-    long start = System.currentTimeMillis();
-
-    CountDownLatch phase2Signal = new CountDownLatch(numThreads);
-    Phase phase1 = new Phase("Phase1", numThreads, numPostPhase, phase2Signal, skierApi,
-        dataBuffer, latency);
+    CountDownLatch phase2Signal = new CountDownLatch(phase2Trigger);
+    Phase phase1 = new Phase("Phase 1", phase1Threads, phase1Post, skierApi,
+        phase2Signal, dataBuffer);
     phase1.startPhase();
+
+    int phase2Threads = phase1Threads * 2;
+    int phase2Post = 1500; //(NUM_POSTS - (phase1Threads*phase1Post))/3;
+    CountDownLatch phase3Signal = new CountDownLatch((int) (phase2Threads * 0.1));
+    Phase phase2 = new Phase("Phase 2", phase2Threads, phase2Post, skierApi,
+        phase3Signal, dataBuffer);
     phase2Signal.await();
-
-
-    CountDownLatch phase3Signal = new CountDownLatch(numThreads);
-    Phase phase2 = new Phase("Phase2", numThreads, numPostPhase, phase3Signal, skierApi,
-        dataBuffer, latency);
     phase2.startPhase();
+
+//
+    int phase3Threads = phase2Threads * 2;
+    int phase3Post = 1125;
+    CountDownLatch phase4Trigger = new CountDownLatch((int) (phase3Threads*0.1));
+    Phase phase3 = new Phase("Phase 3", phase2Threads,
+        phase3Post, skierApi, phase4Trigger, dataBuffer);
     phase3Signal.await();
-
-    CountDownLatch phase4Signal = new CountDownLatch(numThreads);
-    Phase phase3 = new Phase("Phase3", numThreads, numPostPhase, phase4Signal, skierApi,
-        dataBuffer, latency);
     phase3.startPhase();
-    phase4Signal.await();
 
-    CountDownLatch completeSignal = new CountDownLatch(numThreads);
-    Phase phase4 = new Phase("Phase4", numThreads, numPostPhase, completeSignal, skierApi,
-        dataBuffer, latency);
-    phase4.startPhase();
-    completeSignal.await();
-
-
-    long end = System.currentTimeMillis();
-
-    long runtime = end - start;;
-    System.out.println("Number of successful POST requests: " + SUCCESSFUL);
-    System.out.println("Number of unsuccessful POST requests: " + UNSUCCESSFUL);
-    System.out.println("Wall time in seconds: " + (runtime*0.001));
-    System.out.println("Actual Throughput = " + round(UNSUCCESSFUL.intValue()
-        + SUCCESSFUL.intValue() / (runtime*0.001)));
-    System.out.println(latency.size());
+    phase1.finishPhase();
+    phase2.finishPhase();
+    phase3.finishPhase();
+    phase1.phaseStats();
+    phase2.phaseStats();
+    phase3.phaseStats();
   }
 
 }

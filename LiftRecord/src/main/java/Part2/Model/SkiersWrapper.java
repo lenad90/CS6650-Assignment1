@@ -1,6 +1,6 @@
-package Part1.Model;
+package Part2.Model;
 
-import Part1.DataGeneration.SkiersGenerator;
+import Part2.DataGeneration.SkiersGenerator;
 import io.swagger.client.model.LiftRide;
 
 /**
@@ -8,15 +8,15 @@ import io.swagger.client.model.LiftRide;
  */
 public class SkiersWrapper {
 
-  private final LiftRide liftRide;
+  private LiftRide liftRide;
 
-  private final Integer resortID;
+  private Integer resortID;
 
-  private final String seasonID;
+  private String seasonID;
 
-  private final String day;
+  private String day;
 
-  private final Integer skierId;
+  private Integer skierId;
 
   public SkiersWrapper() {
     SkiersGenerator generator = new SkiersGenerator();

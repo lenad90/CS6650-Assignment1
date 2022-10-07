@@ -1,7 +1,6 @@
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javax.servlet.*;
 import javax.servlet.http.*;
 import javax.servlet.annotation.*;
 import java.io.IOException;
@@ -12,11 +11,11 @@ public class SkiersServlet extends HttpServlet {
 
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
-      throws ServletException, IOException {
+      throws IOException {
     response.setContentType("text/plain");
     String urlPath = request.getPathInfo();
     if (isValidated(urlPath)) {
-      response.setStatus(HttpServletResponse.SC_CREATED);
+      response.setStatus(HttpServletResponse.SC_OK);
       response.getWriter().write("It works!");
     } else {
       response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -26,7 +25,7 @@ public class SkiersServlet extends HttpServlet {
 
   @Override
   protected void doPost(HttpServletRequest request, HttpServletResponse response)
-      throws ServletException, IOException {
+      throws IOException {
     response.setContentType("text/plain");
     String urlPath = request.getPathInfo();
     // validate the url
@@ -40,11 +39,6 @@ public class SkiersServlet extends HttpServlet {
     String requestJson = request.getReader().lines().collect(Collectors.joining());
     if (!isValidated(urlPath) || !isJsonValidated(requestJson)) {
       response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-      System.out.println("urlPath " + urlPath);
-      System.out.println("Error!");
-      System.out.println(isValidated(urlPath));
-      System.out.println(isJsonValidated(urlPath));
-      System.out.println(request.getRequestURL());
     } else {
       response.setStatus(HttpServletResponse.SC_CREATED);
       response.getWriter().write("It works!");

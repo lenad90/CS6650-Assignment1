@@ -1,12 +1,11 @@
-package Part1.Threads;
+package Part2.Threads;
 
 import Part1.SkiersClient;
-import Part1.Model.SkiersWrapper;
+import Part2.Model.SkiersWrapper;
 import io.swagger.client.ApiException;
 import io.swagger.client.ApiResponse;
 import io.swagger.client.api.SkiersApi;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Consumer implements Runnable {
@@ -34,7 +33,7 @@ public class Consumer implements Runnable {
     for (int i = 0; i < this.numPosts; i++) {
       try {
         skier = this.dataBuffer.take();
-        this.post(skier);
+        this.post2(skier);
       } catch (InterruptedException | ApiException e) {
         e.printStackTrace();
         System.out.println(e);
@@ -42,7 +41,7 @@ public class Consumer implements Runnable {
     }
   }
 
-  private void post(SkiersWrapper skier) throws ApiException {
+  synchronized private void post2(SkiersWrapper skier) throws ApiException {
     int numTries = 0;
     try {
       while (numTries != 5) {

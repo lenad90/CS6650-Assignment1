@@ -1,6 +1,6 @@
-package Part1.Threads;
+package Part2.Threads;
 
-import Part1.Model.SkiersWrapper;
+import Part2.Model.SkiersWrapper;
 import java.util.concurrent.BlockingQueue;
 
 public class Producer implements Runnable {

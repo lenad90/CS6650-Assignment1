@@ -1,10 +1,8 @@
-package Part1.Threads;
+package Part2.Threads;
 
 import static java.lang.Math.round;
 
-import Part1.Model.SkiersWrapper;
-import Part1.SkiersClient;
-import io.swagger.client.ApiClient;
+import Part2.Model.SkiersWrapper;
 import io.swagger.client.api.SkiersApi;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,7 +11,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -24,7 +21,6 @@ public class Phase {
   private SkiersApi skierApi;
   private BlockingQueue<SkiersWrapper> dataBuffer;
   private CountDownLatch phaseSignal;
-  private CountDownLatch phaseFinish;
   private long start;
   private long end;
   public static List<Double> latency = Collections.synchronizedList(new ArrayList<>());
@@ -32,38 +28,35 @@ public class Phase {
   private final AtomicInteger UNSUCCESSFUL = new AtomicInteger(0);
   private final int MAX_SERVER_THREADS = 200;
 
-  public Phase(String phaseOption, Integer numThreads, Integer numPosts, SkiersApi skierApi,
-      CountDownLatch phaseSignal, BlockingQueue<SkiersWrapper> dataBuffer) {
+  public Phase(String phaseOption, Integer numThreads, Integer numPosts, CountDownLatch phaseSignal,
+      SkiersApi skierApi, BlockingQueue<SkiersWrapper> dataBuffer) {
     this.phaseOption = phaseOption;
     this.numThreads = numThreads;
     this.numPosts = numPosts;
-    this.phaseFinish = new CountDownLatch(this.numThreads);
     this.phaseSignal = phaseSignal;
     this.skierApi = skierApi;
     this.dataBuffer = dataBuffer;
   }
 
-  public void startPhase() throws InterruptedException {
-    this.start = System.currentTimeMillis();
+  public void startPhase2() throws InterruptedException {
     System.out.println(this.phaseOption + " is starting ==========");
-    ExecutorService pool = Executors.newFixedThreadPool(this.numThreads);
     for (int i = 0; i < this.numThreads; i++) {
-      pool.execute(new Consumer(this.numPosts, this.skierApi, this.dataBuffer, SUCCESSFUL,  UNSUCCESSFUL));
-      this.phaseFinish.countDown();
+      ExecutorService pool = Executors.newFixedThreadPool(this.numThreads);
+      pool.execute(new Consumer(this.numPosts, this.skierApi, this.dataBuffer, SUCCESSFUL, UNSUCCESSFUL));
+      pool.shutdown();
       this.phaseSignal.countDown();
-    }
-    pool.shutdown();
-    while (!pool.awaitTermination(10, TimeUnit.SECONDS)) {
-      System.out.println("Awaiting for thread to terminate");
+      while (!pool.awaitTermination(10, TimeUnit.SECONDS)) {
+        System.out.println("Awaiting for thread to terminate");
+      }
     }
     this.end = System.currentTimeMillis();
   }
 
-  public void finishPhase() throws InterruptedException {
-    this.phaseFinish.await();
+  public void await2() throws InterruptedException {
+    this.phaseSignal.await();
   }
 
-  public void phaseStats() {
+  public void phaseStats2() {
     double wallTime = round((this.end - this.start)*0.001);
     System.out.println("===============" + this.phaseOption + " Statistics ================");
     System.out.println("Number of successful POST requests: " + SUCCESSFUL);
