@@ -1,21 +1,21 @@
 package Part2.Threads;
 
-import Part2.Model.SkiersWrapper;
+import Part2.Model.SkiersRunner;
 import java.util.concurrent.BlockingQueue;
 
 public class Producer implements Runnable {
 
-  private BlockingQueue<SkiersWrapper> dataBuffer;
-  private Integer numPosts;
+  private final BlockingQueue<SkiersRunner> dataBuffer;
+  private final Integer numPosts;
 
   public Producer(Integer numPosts,
-      BlockingQueue<SkiersWrapper> dataBuffer) {
+      BlockingQueue<SkiersRunner> dataBuffer) {
     this.numPosts = numPosts;
     this.dataBuffer = dataBuffer;
   }
 
   private void generateAndPutSkiersWrapper() throws InterruptedException {
-    SkiersWrapper skiersWrapper = new SkiersWrapper();
+    SkiersRunner skiersWrapper = new SkiersRunner();
     dataBuffer.put(skiersWrapper);
   }
 

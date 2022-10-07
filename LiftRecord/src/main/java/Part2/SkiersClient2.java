@@ -1,7 +1,7 @@
 package Part2;
 
-import Part2.Model.SkiersWrapper;
 import Part2.Threads.Phase;
+import Part2.Model.SkiersRunner;
 import Part2.Threads.Producer;
 import com.opencsv.CSVWriter;
 import io.swagger.client.ApiClient;
@@ -19,73 +19,78 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class SkiersClient2 {
   public static final List<String[]> dataPerformance = Collections.synchronizedList(new ArrayList<>());
+  public static final List<Long> responseTime = Collections.synchronizedList(new ArrayList<>());
   private static final Integer NUM_POSTS = 200000;
 
   public static void main(String[] args) throws InterruptedException {
+    int processors = Runtime.getRuntime().availableProcessors();
+
     SkiersApi skierApi = new SkiersApi();
     ApiClient client = skierApi.getApiClient();
-    BlockingQueue<SkiersWrapper> dataBuffer = new LinkedBlockingQueue<>();
+    BlockingQueue<SkiersRunner> dataBuffer2 = new LinkedBlockingQueue<>();
 
-    client.setBasePath("http://localhost:8080"
-        + "/LiftServer_war/");
-//    client.setBasePath("http://34.221.94.117:8080"
-//        + "/LiftServer_war/");
+//    client.setBasePath("http://localhost:8080"
+//      + "/LiftServer_war/");
+    client.setBasePath("http://ec2-54-185-198-37.us-west-2.compute.amazonaws.com:8080/LiftServer_war/");
 
     File file = new File("LiftRecordPerformance.csv");
     dataPerformance.add(new String[]{"Start Time", "Request Type", "Latency", "Response Code"});
 
-    new Thread(new Producer(NUM_POSTS, dataBuffer)).start();
+    new Thread(new Producer(NUM_POSTS, dataBuffer2)).start();
 
-//    int numPostPhase = 1000;
-//    int numThreads = 32;
-
-    int phase1Threads = 32;
+    int phase1Threads = processors*4;
     int phase1Post = 1000;
     int phase2Trigger = phase1Threads/4;
-    CountDownLatch phase2Signal = new CountDownLatch(phase2Trigger);
-    Phase phase1 = new Phase("Phase 1", phase1Threads, phase1Post, phase2Signal, skierApi,
-        dataBuffer);
-    phase1.startPhase2();
-    //56,000
-    int phase2Threads = phase1Threads * 2;
-    int phase2PostTotal = (NUM_POSTS - phase1Post * phase1Threads)/3;
-    int phase3Trigger = (int) Math.round(phase2Threads * 0.1);
-    CountDownLatch phase3Signal = new CountDownLatch(phase3Trigger);
-    Phase phase2 = new Phase("Phase 2", phase2Threads,
-        phase2PostTotal/phase2Threads, phase3Signal, skierApi, dataBuffer);
-    phase2.startPhase2();
-    phase2.await2();
-//
-    int phase3Threads = phase2Threads * 2;
-    int phase3PostTotal = (phase3Threads*phase2Threads*10);
-    CountDownLatch phase4Trigger = new CountDownLatch(2);
-    Phase phase3 = new Phase("Phase 3", phase2Threads,
-        phase3PostTotal/phase3Threads, phase4Trigger, skierApi, dataBuffer);
-    phase3.startPhase2();
-    phase3.await2();
 
-    int phase4Threads = phase3Threads * 2;
-    int phase4PostTotal = (NUM_POSTS - (phase3PostTotal + phase2PostTotal));
-    CountDownLatch completion = new CountDownLatch(phase3Threads);
-    Phase phase4 = new Phase("Phase 4", phase2Threads,
-        phase4PostTotal/phase4Threads, completion, skierApi, dataBuffer);
-    phase4.startPhase2();
-    phase4.await2();
+    long start = System.currentTimeMillis();
+    CountDownLatch phase2Signal = new CountDownLatch(phase2Trigger);
+    Phase phase1 = new Phase("Phase 1", phase1Threads, phase1Post, skierApi,
+        phase2Signal, dataBuffer2);
+    phase1.startPhase();
+
+    int phase2Threads = phase1Threads * 2;
+    int phase2Post = 1500;
+    CountDownLatch phase3Signal = new CountDownLatch((int) (phase2Threads * 0.1));
+    Phase phase2 = new Phase("Phase 2", phase2Threads, phase2Post, skierApi,
+        phase3Signal, dataBuffer2);
+    phase2Signal.await();
+    phase2.startPhase();
+
+    int phase3Threads = phase2Threads * 2;
+    int phase3Post = 1125;
+    CountDownLatch phase4Trigger = new CountDownLatch((int) (phase3Threads*0.1));
+    Phase phase3 = new Phase("Phase 3", phase2Threads,
+        phase3Post, skierApi, phase4Trigger, dataBuffer2);
+    phase3Signal.await();
+    phase3.startPhase();
+
+    phase1.finishPhase();
+    phase2.finishPhase();
+    phase3.finishPhase();
+    long end = System.currentTimeMillis();
 
 
     try {
       BufferedWriter outputFile = new BufferedWriter(new FileWriter(file));
       CSVWriter writer = new CSVWriter(outputFile);
+      SkiersClient2.dataPerformance.add(new String[] { "Start Time", "Request Type",
+          "Latency", "Response Code" });
       writer.writeAll(dataPerformance);
       writer.close();
     } catch (IOException e) {
       e.printStackTrace();
     }
 
-    phase1.phaseStats2();
-    phase2.phaseStats2();
-    phase3.phaseStats2();
-    phase4.phaseStats2();
+    Calculations calc = new Calculations(responseTime);
+    System.out.println("============= PART 2 STATS ==============");
+    System.out.println("Mean response time = " + calc.mean() + "/ms");
+    System.out.println("Median response time = " + calc.median() + "/ms");
+    System.out.println("Throughput = " +
+        NUM_POSTS/(int) (end - start) + "/ms");
+    System.out.println("p99 Response Time = " + calc.percentile(99) + "/ms");
+    System.out.println("Min = " + calc.min() + "/s" + " Max = " + calc.max() + "/ms");
+
+
   }
 
 }

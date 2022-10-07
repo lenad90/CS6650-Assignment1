@@ -1,25 +1,24 @@
 package Part1.Threads;
 
-import Part1.Model.SkiersWrapper;
+import Part1.Model.SkiersRunner;
 import java.util.concurrent.BlockingQueue;
 
 public class Producer implements Runnable {
 
-  private BlockingQueue<SkiersWrapper> dataBuffer;
-  private Integer numPosts;
+  private final BlockingQueue<SkiersRunner> dataBuffer;
+  private final Integer numPosts;
 
   public Producer(Integer numPosts,
-      BlockingQueue<SkiersWrapper> dataBuffer) {
+      BlockingQueue<SkiersRunner> dataBuffer) {
     this.numPosts = numPosts;
     this.dataBuffer = dataBuffer;
   }
 
   private void generateAndPutSkiersWrapper() throws InterruptedException {
-    SkiersWrapper skiersWrapper = new SkiersWrapper();
-    dataBuffer.put(skiersWrapper);
+    SkiersRunner skiersDataWrapper = new SkiersRunner();
+    dataBuffer.put(skiersDataWrapper);
   }
 
-  // task for producer thread - generate SkiersWrapper and PostRecords to add ot linked blocking queue
   @Override
   public void run() {
     try {

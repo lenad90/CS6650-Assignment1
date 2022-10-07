@@ -2,77 +2,50 @@ package Part2.Threads;
 
 import static java.lang.Math.round;
 
-import Part2.Model.SkiersWrapper;
+import Part2.Model.SkiersRunner;
 import io.swagger.client.api.SkiersApi;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Phase {
   private final Integer numThreads;
   private final Integer numPosts;
-  private String phaseOption;
-  private SkiersApi skierApi;
-  private BlockingQueue<SkiersWrapper> dataBuffer;
-  private CountDownLatch phaseSignal;
-  private long start;
-  private long end;
-  public static List<Double> latency = Collections.synchronizedList(new ArrayList<>());
-  private final AtomicInteger SUCCESSFUL = new AtomicInteger(0);
-  private final AtomicInteger UNSUCCESSFUL = new AtomicInteger(0);
-  private final int MAX_SERVER_THREADS = 200;
+  private final String phaseOption;
+  private final SkiersApi skierApi;
+  private final BlockingQueue<SkiersRunner> dataBuffer;
+  private final CountDownLatch phaseSignal;
+  private final CountDownLatch phaseFinish;
 
-  public Phase(String phaseOption, Integer numThreads, Integer numPosts, CountDownLatch phaseSignal,
-      SkiersApi skierApi, BlockingQueue<SkiersWrapper> dataBuffer) {
+  public Phase(String phaseOption, Integer numThreads, Integer numPosts, SkiersApi skierApi,
+      CountDownLatch phaseSignal, BlockingQueue<SkiersRunner> dataBuffer2) {
     this.phaseOption = phaseOption;
     this.numThreads = numThreads;
     this.numPosts = numPosts;
+    this.phaseFinish = new CountDownLatch(this.numThreads);
     this.phaseSignal = phaseSignal;
     this.skierApi = skierApi;
-    this.dataBuffer = dataBuffer;
+    this.dataBuffer = dataBuffer2;
   }
 
-  public void startPhase2() throws InterruptedException {
+  public void startPhase() throws InterruptedException {
     System.out.println(this.phaseOption + " is starting ==========");
+    ExecutorService pool = Executors.newFixedThreadPool(this.numThreads);
     for (int i = 0; i < this.numThreads; i++) {
-      ExecutorService pool = Executors.newFixedThreadPool(this.numThreads);
-      pool.execute(new Consumer(this.numPosts, this.skierApi, this.dataBuffer, SUCCESSFUL, UNSUCCESSFUL));
-      pool.shutdown();
+      pool.execute(new Consumer(this.numPosts, this.skierApi, this.dataBuffer));
+      this.phaseFinish.countDown();
       this.phaseSignal.countDown();
-      while (!pool.awaitTermination(10, TimeUnit.SECONDS)) {
-        System.out.println("Awaiting for thread to terminate");
-      }
     }
-    this.end = System.currentTimeMillis();
+    pool.shutdown();
+    while (!pool.awaitTermination(10, TimeUnit.SECONDS)) {
+      System.out.println("Awaiting for thread to terminate");
+    }
   }
 
-  public void await2() throws InterruptedException {
-    this.phaseSignal.await();
-  }
-
-  public void phaseStats2() {
-    double wallTime = round((this.end - this.start)*0.001);
-    System.out.println("===============" + this.phaseOption + " Statistics ================");
-    System.out.println("Number of successful POST requests: " + SUCCESSFUL);
-    System.out.println("Number of unsuccessful POST requests: " + UNSUCCESSFUL);
-    System.out.println("Wall Time in seconds: " + (wallTime));
-    System.out.println("Actual Throughput = " + round(SUCCESSFUL.intValue() + UNSUCCESSFUL.intValue()
-        / wallTime) + "/s for " +
-        this.numThreads + " threads");
-
-    // Calculating expected throughput
-    int N = 200;
-    if (this.numThreads > 200) {
-      N = this.numThreads;
-    }
-    System.out.println("Expected throughput = " + round(N/latency.stream().mapToDouble(val -> val)
-        .average().orElse(0.0)) + "/s");
+  public void finishPhase() throws InterruptedException {
+    this.phaseFinish.await();
   }
 
 //  public void termination() throws InterruptedException {

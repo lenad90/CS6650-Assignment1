@@ -1,25 +1,23 @@
 package Part1.Threads;
 
-import Part1.SkiersClient;
-import Part1.Model.SkiersWrapper;
+import Part1.Model.SkiersRunner;
 import io.swagger.client.ApiException;
 import io.swagger.client.ApiResponse;
 import io.swagger.client.api.SkiersApi;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Consumer implements Runnable {
 
   private final SkiersApi skierApi;
-  private final BlockingQueue<SkiersWrapper> dataBuffer;
+  private final BlockingQueue<SkiersRunner> dataBuffer;
   private final Integer numPosts;
   private final AtomicInteger successful;
   private final AtomicInteger unsuccessful;
 
 
   public Consumer(Integer numPosts, SkiersApi skierApi,
-      BlockingQueue<SkiersWrapper> dataBuffer, AtomicInteger successful,
+      BlockingQueue<SkiersRunner> dataBuffer, AtomicInteger successful,
       AtomicInteger unsuccessful) {
     this.skierApi = skierApi;
     this.dataBuffer = dataBuffer;
@@ -30,19 +28,18 @@ public class Consumer implements Runnable {
 
   @Override
   public void run() {
-    SkiersWrapper skier;
+    SkiersRunner skier;
     for (int i = 0; i < this.numPosts; i++) {
       try {
         skier = this.dataBuffer.take();
         this.post(skier);
       } catch (InterruptedException | ApiException e) {
         e.printStackTrace();
-        System.out.println(e);
       }
     }
   }
 
-  private void post(SkiersWrapper skier) throws ApiException {
+  private void post(SkiersRunner skier) throws ApiException {
     int numTries = 0;
     try {
       while (numTries != 5) {

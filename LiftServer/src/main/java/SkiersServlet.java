@@ -1,4 +1,3 @@
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.servlet.http.*;
@@ -13,8 +12,7 @@ public class SkiersServlet extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
     response.setContentType("text/plain");
-    String urlPath = request.getPathInfo();
-    if (isValidated(urlPath)) {
+    if (isValidated(request.getPathInfo())) {
       response.setStatus(HttpServletResponse.SC_OK);
       response.getWriter().write("It works!");
     } else {
@@ -28,14 +26,11 @@ public class SkiersServlet extends HttpServlet {
       throws IOException {
     response.setContentType("text/plain");
     String urlPath = request.getPathInfo();
-    // validate the url
     if (urlPath == null || urlPath.isEmpty()) {
       response.setStatus(HttpServletResponse.SC_NOT_FOUND);
       response.getWriter().write("Missing parameters");
-      System.out.println("urlPath" + urlPath);
     }
 
-    // retrieved
     String requestJson = request.getReader().lines().collect(Collectors.joining());
     if (!isValidated(urlPath) || !isJsonValidated(requestJson)) {
       response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -48,8 +43,7 @@ public class SkiersServlet extends HttpServlet {
   private boolean isValidated(String urlPath) {
     String urlPattern = "^/\\d+/seasons/\\d+/days/\\d+/skiers/\\d+$";
     Pattern pattern = Pattern.compile(urlPattern, Pattern.CASE_INSENSITIVE);
-    Matcher matcher = pattern.matcher(urlPath);
-    return matcher.matches();
+    return pattern.matcher(urlPath).matches();
   }
 
   private boolean isJsonValidated(String jsonRequest) {
