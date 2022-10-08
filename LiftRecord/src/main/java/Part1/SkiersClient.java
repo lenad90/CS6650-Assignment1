@@ -21,13 +21,12 @@ public class SkiersClient {
     ApiClient client = skierApi.getApiClient();
     BlockingQueue<SkiersRunner> dataBuffer = new LinkedBlockingQueue<>();
 
-    //client.setBasePath("http://localhost:8080");
-    client.setBasePath("http://ec2-34-219-108-75.us-west-2.compute.amazonaws.com:8080/LiftSpringServerWar");
+    client.setBasePath("http://ec2-34-222-139-253.us-west-2.compute.amazonaws.com:8080/LiftServer_war");
 
     new Thread(new Producer(NUM_POSTS, dataBuffer)).start();
 
     int phase1Threads = processors * 4;
-    int phase1Post = 1000;
+    int phase1Post = 2050;
     int phase2Trigger = phase1Threads/4;
 
     long start = System.currentTimeMillis();
@@ -46,9 +45,9 @@ public class SkiersClient {
 
 
     int phase3Threads = phase2Threads * 2;
-    int phase3Post = 1125;
+    int phase3Post = 300;
     CountDownLatch phase4Trigger = new CountDownLatch((int) (phase3Threads*0.1));
-    Phase phase3 = new Phase("Phase 3", phase2Threads,
+    Phase phase3 = new Phase("Phase 3", phase3Threads,
         phase3Post, skierApi, phase4Trigger, dataBuffer);
     phase3Signal.await();
     phase3.startPhase();
