@@ -31,9 +31,10 @@ public class SkiersClient2 {
 
 //    client.setBasePath("http://localhost:8080"
 //      + "/LiftServer_war/");
-    client.setBasePath("http://ec2-54-185-198-37.us-west-2.compute.amazonaws.com:8080/LiftServer_war/");
+    // client.setBasePath("http://ec2-54-185-198-37.us-west-2.compute.amazonaws.com:8080/LiftServer_war/");
+    client.setBasePath("http://ec2-34-219-108-75.us-west-2.compute.amazonaws.com:8080/LiftSpringServerWar");
 
-    File file = new File("LiftRecordPerformance.csv");
+    File file = new File("LiftRecordPerformanceSpring.csv");
     dataPerformance.add(new String[]{"Start Time", "Request Type", "Latency", "Response Code"});
 
     new Thread(new Producer(NUM_POSTS, dataBuffer2)).start();

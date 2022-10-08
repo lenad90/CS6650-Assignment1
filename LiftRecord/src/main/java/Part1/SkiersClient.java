@@ -21,9 +21,8 @@ public class SkiersClient {
     ApiClient client = skierApi.getApiClient();
     BlockingQueue<SkiersRunner> dataBuffer = new LinkedBlockingQueue<>();
 
-//    client.setBasePath("http://localhost:8080"
-//      + "/LiftServer_war/");
-    client.setBasePath("http://ec2-54-185-198-37.us-west-2.compute.amazonaws.com:8080/LiftServer_war/");
+    //client.setBasePath("http://localhost:8080");
+    client.setBasePath("http://ec2-34-219-108-75.us-west-2.compute.amazonaws.com:8080/LiftSpringServerWar");
 
     new Thread(new Producer(NUM_POSTS, dataBuffer)).start();
 
