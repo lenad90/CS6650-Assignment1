@@ -42,20 +42,19 @@ public class Consumer implements Runnable {
   private void post(SkiersRunner skier) throws ApiException {
     int numTries = 0;
     try {
-      long start = System.currentTimeMillis();
       while (numTries != 5) {
+        long start = System.currentTimeMillis();
         ApiResponse<Void> response = skierApi.writeNewLiftRideWithHttpInfo(skier.getLiftRide(),
             skier.getResortID(), skier.getSeasonID(), skier.getDay(), skier.getSkierId());
+        long end = System.currentTimeMillis();
+        long latency = end - start;
+        Phase.latency.add(latency*0.001);
         if (response.getStatusCode() == 201) {
           this.successful.getAndIncrement();
           break;
         } else {
           numTries += 1;
         }
-        long end = System.currentTimeMillis();
-        long latency = end - start;
-        Phase.latency.add(latency*0.001);
-
       }
       if (numTries == 5) {
         this.unsuccessful.getAndIncrement();
