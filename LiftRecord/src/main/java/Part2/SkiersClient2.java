@@ -29,7 +29,7 @@ public class SkiersClient2 {
     ApiClient client = skierApi.getApiClient();
     BlockingQueue<SkiersRunner> dataBuffer2 = new LinkedBlockingQueue<>();
 
-    client.setBasePath("http://ec2-52-39-227-71.us-west-2.compute.amazonaws.com:8080/LiftSpringServerWar");
+    client.setBasePath("http://ec2-35-93-20-47.us-west-2.compute.amazonaws.com:8080/LiftSpringServerWar");
 
     File file = new File("LiftRecordPerformanceSpring.csv");
     dataPerformance.add(new String[]{"Start Time", "Request Type", "Latency", "Response Code"});

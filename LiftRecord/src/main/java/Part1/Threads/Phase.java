@@ -74,7 +74,7 @@ public class Phase {
 
     int MAX_SERVER_THREADS = 200;
     int N = MAX_SERVER_THREADS;
-    if (this.numThreads > MAX_SERVER_THREADS) {
+    if (this.numThreads < MAX_SERVER_THREADS) {
       N = this.numThreads;
     }
     System.out.println("Expected throughput = " + round(N / latency.stream().mapToDouble(val -> val)
