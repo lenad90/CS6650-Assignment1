@@ -52,13 +52,14 @@ public class Consumer implements Runnable {
         } else {
           numTries += 1;
         }
+        long end = System.currentTimeMillis();
+        long latency = end - start;
+        Phase.latency.add(latency*0.001);
+
       }
       if (numTries == 5) {
         this.unsuccessful.getAndIncrement();
       }
-      long end = System.currentTimeMillis();
-      long latency = end - start;
-      Phase.latency.add(latency*0.001);
     } catch (ApiException e) {
       e.printStackTrace();
     }
