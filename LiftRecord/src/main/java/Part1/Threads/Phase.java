@@ -45,8 +45,7 @@ public class Phase {
     System.out.println(this.phaseOption + " is starting ==========");
     ExecutorService pool = Executors.newFixedThreadPool(this.numThreads);
     for (int i = 0; i < this.numThreads; i++) {
-      pool.execute(
-          new Consumer(this.numPosts, this.skierApi, this.dataBuffer, SUCCESSFUL, UNSUCCESSFUL));
+      pool.execute(new Consumer(this.numPosts, this.skierApi, this.dataBuffer, SUCCESSFUL, UNSUCCESSFUL));
       this.phaseFinish.countDown();
       this.phaseSignal.countDown();
     }
