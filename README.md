@@ -1,5 +1,5 @@
 # CS6650-Assignment1
-<h1>LiftServer/LiftSpringServer<h1>
+<h1>LiftServer/LiftSpringServer</h1>
 
 	The *LiftServer* contains a *SkiersServlet* which validates the URL for both post and get requests, and it also validates whether a JSON file is sent with the correct attributes.
 
@@ -26,5 +26,5 @@ Client
 Calculations
 	A calculations class is created in part2 of the assignment, and it is used to compute the mean, median, 99th percentile, min, and max.
 
-</h2>Little’s Law Prediction:</h2>
+<h2>Little’s Law Prediction:</h2>
 Little’s Law is defined as N = λ * L. This means that the amount of concurrency = throughput of requests processed per unit time * the average response time a request spends in the system. The actual throughput is calculated as the total number of requests/wall time. For the expected throughput, I divided the total number of threads by the average latency of a single thread to calculate the requests per second for a single thread. It was better than the expected throughput mainly due to multithreading– more requests are being handled at the same time. This is also shown when the number of threads doubles when the number of posts only increments by a smaller percentage.
