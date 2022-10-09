@@ -1,10 +1,11 @@
 # CS6650-Assignment1
 <h1>LiftServer/LiftSpringServer</h1>
 
-	The *LiftServer* contains a *SkiersServlet* which validates the URL for both post and get requests, and it also validates whether a JSON file is sent with the correct attributes.
+The *LiftServer* contains a *SkiersServlet* which validates the URL for both post and get requests, and it also validates whether a JSON file is sent with the correct attributes.
 
 LiftSpringServer operates similarly as the LiftServer except it uses SpringBoot.
-<h1>iftRecord<h1>
+
+<h1>LiftRecord</h1>
 
 
 DataGeneration
